@@ -8,41 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    /**
-     * Show the login form.
-     */
-    public function showLoginForm()
-    {
-        return view('auth.login');
-    }
 
-    /**
-     * Handle a login request.
-     */
-    public function login(Request $request)
-    {
-        // Validate the login form
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
-
-        // Attempt to log the user in
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-
-            // Redirect based on role
-            return $this->redirectToBasedOnRole(Auth::user()->role_id);
-        }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
-    }
-
-    /**
-     class LoginController extends Controller
-{
     /**
      * Show the login form.
      */
@@ -98,16 +64,16 @@ class LoginController extends Controller
         $user = Auth::user();
 
         switch ($user->role->name) {
-            case 'admin':
+            case '1':
                 return redirect()->route('admin.dashboard');
-            case 'teacher':
+            case '2':
                 return redirect()->route('teacher.dashboard');
-            case 'student':
+            case '3':
                 return redirect()->route('student.dashboard');
-            case 'parent':
+            case '4':
                 return redirect()->route('parent.dashboard');
             default:
-                return redirect('/home');
+                return redirect('/');
         }
     }
 }
