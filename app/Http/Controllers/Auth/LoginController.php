@@ -64,13 +64,13 @@ class LoginController extends Controller
         $user = Auth::user();
 
         switch ($user->role->name) {
-            case '1':
+            case "Admin":
                 return redirect()->route('admin.dashboard');
-            case '2':
+            case "Teacher":
                 return redirect()->route('teacher.dashboard');
-            case '3':
+            case "Student":
                 return redirect()->route('student.dashboard');
-            case '4':
+            case "Parent":
                 return redirect()->route('parent.dashboard');
             default:
                 return redirect('/');
