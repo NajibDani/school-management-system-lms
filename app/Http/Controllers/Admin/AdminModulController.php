@@ -13,7 +13,8 @@ class AdminModulController extends Controller
     public function index()
     {
         $modules = Module::with('course')->get(); // Ambil semua modul beserta kursus terkait
-        return view('admin.courses.allModule', compact('modules'));
+        $courses = Course::all(); // Ambil semua kursus
+        return view('admin.courses.allModule', compact('modules', 'courses'));
     }
 
     // Menampilkan form tambah modul

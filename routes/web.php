@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminTeacherController;
 use App\Http\Controllers\Admin\AdminParentController;
 use App\Http\Controllers\Admin\AdminClassController;
 use App\Http\Controllers\Admin\AdminModulController;
+use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentController; // Controller untuk profil siswa
@@ -44,7 +45,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{id}', [AdminStudentController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminStudentController::class, 'destroy'])->name('destroy');
         });
-        
+
         // CRUD Teacher
         Route::prefix('admin/teachers')->name('admin.teachers.')->group(function () {
             Route::get('/', [AdminTeacherController::class, 'index'])->name('index');
@@ -54,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{id}', [AdminTeacherController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminTeacherController::class, 'destroy'])->name('destroy');
         });
-        
+
         // CRUD Parents
         Route::prefix('admin/parents')->name('admin.parents.')->group(function () {
             Route::get('/', [AdminParentController::class, 'index'])->name('index');
@@ -64,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{id}', [AdminParentController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminParentController::class, 'destroy'])->name('destroy');
         });
-        
+
         // CRUD Classes
         Route::prefix('admin/classes')->name('admin.classes.')->group(function () {
             Route::get('/', [AdminClassController::class, 'index'])->name('index');
@@ -74,7 +75,16 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{id}', [AdminClassController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminClassController::class, 'destroy'])->name('destroy');
         });
-        
+
+        // CRUD Course
+        Route::prefix('admin/courses')->name('admin.courses.')->group(function () {
+            Route::get('/', [AdminCourseController::class, 'index'])->name('index');
+            Route::post('/store', [AdminCourseController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [AdminCourseController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [AdminCourseController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AdminCourseController::class, 'destroy'])->name('destroy');
+        });
+
         // CRUD Modul
         Route::prefix('admin/modules')->name('admin.modules.')->group(function () {
             Route::get('/', [AdminModulController::class, 'index'])->name('index');
