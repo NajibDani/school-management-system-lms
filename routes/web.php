@@ -79,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
         // CRUD Course
         Route::prefix('admin/courses')->name('admin.courses.')->group(function () {
             Route::get('/', [AdminCourseController::class, 'index'])->name('index');
-            Route::post('/store', [AdminCourseController::class, 'store'])->name('store');
+            Route::post('/', [AdminCourseController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [AdminCourseController::class, 'edit'])->name('edit');
             Route::put('/{id}', [AdminCourseController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminCourseController::class, 'destroy'])->name('destroy');

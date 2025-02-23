@@ -1,40 +1,32 @@
 @extends('admin.dashboard')
 
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <div class="container mt-4">
     <h2>List Courses</h2>
-    <!-- Button untuk menambah modul baru -->
-    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addCourseModal">Add New Course</button>
+    <button id="addCourse" class="btn btn-primary mb-3">Tambah Courses</button>
 
-    <table id="coursesTable" class="table table-bordered">
+    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>No</th>
                 <th>Name</th>
-                <th>Descriptions</th>
-                <th>Teacher</th>
+                <th>Deskripsi</th>
+                <th>Phone</th>
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody>
-            @foreach ($courses as $key => $course)
-                <tr>
-                    <td>{{ $key += 1 }}</td>
+        <tbody id="courseTable">
+            @foreach($courses as $key => $course)
+                <tr id="row_{{ $course->id }}">
+                    <td>{{ $loop->iteration }}</td>
                     <td>{{ $course->name }}</td>
                     <td>{{ $course->description }}</td>
-                    <td>{{ $course->teacher->name ?? 'Tidak Diketahui' }}</td>
+                    <td>{{ $course->teacher->name }}</td>
                     <td>
-                        {{-- <a href="{{ route('admin.courses.edit', $course->id) }}" class="btn btn-warning btn-sm btn-edit" data-id="{{ $course->id }}" data-toggle="modal" data-target="#editCourseModal">Edit</a> --}}
-                        <a href="#" class="btn btn-warning btn-sm btn-edit" data-id="{{ $course->id }}"  data-toggle="modal" data-target="#editCourseModal">Edit</a>
-                        {{-- <a href="#" class="btn btn-warning btn-sm btn-edit" data-id="{{ $course->id }}" data-toggle="modal" data-target="#editCourseModal">Edit</a> --}}
-
-
-                        {{-- <button class="btn btn-warning btn-sm">Edit</button> --}}
-                        <form action="{{ route('admin.courses.destroy', $course->id) }}" method="POST" style="display: inline-block;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Delete</button>
-                        </form>
+                        <button class="btn btn-warning btn-sm editCourse" data-id="{{ $course->id }}">Edit</button>
+                        <button class="btn btn-danger btn-sm deleteCourse" data-id="{{ $course->id }}">Delete</button>
                     </td>
                 </tr>
             @endforeach
@@ -42,26 +34,24 @@
     </table>
 </div>
 
-<!-- Modal Tambah Course -->
-<div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+<!-- Modal -->
+<div class="modal fade" id="courseModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="addCourseForm" method="POST" action="{{ route('admin.courses.store') }}">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+            <div class="modal-header">
+                <h5 class="modal-title">Courses Form</h5>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
+            </div>
+            <form id="courseForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="name">Nama</label>
-                        <input type="text" name="name" id="name" class="form-control" required>
+                    <input type="hidden" id="courseId">
+                    <div class="form-group mb-3">
+                        <label>Name</label>
+                        <input type="text" id="name" name="name" class="form-control">
                     </div>
-                    <div class="form-group">
-                        <label for="descriptions">Descripsi</label>
-                        <input type="text" name="descriptions" id="descriptions" class="form-control">
+                    <div class="form-group mb-3">
+                        <label>Deskripsi</label>
+                        <input type="text" id="descriptions" name="descriptions" class="form-control">
                     </div>
                     <div class="form-group">
                         <label for="teacher">Teacher</label>
@@ -74,125 +64,104 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Add Course</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    {{-- <button type="button" class="btn btn-success" onclick="saveStudent()">Save</button> --}}
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Edit Course -->
-<div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editCourseModalLabel">Edit Course</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editCourseForm" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="mb-3">
-                        <label for="courseName" class="form-label">Course Name</label>
-                        <input type="text" class="form-control" id="courseName" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="courseDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="courseDescription" name="description" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="courseTeacher" class="form-label">Teacher</label>
-                        <select class="form-control" id="courseTeacher" name="teacher_id">
-                            <option value="" selected disabled>Select Teacher</option>
-                            @foreach($teachers as $teacher)
-                                <option value="{{ $teacher->id }}">{{ $teacher->user->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-@section('scripts')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+{{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Your existing script -->
-<script>
-    $(document).on('click', '.btn-edit', function () {
-        let course = $(this).data('course');
-
-        $('#edit_course_id').val(course.id);
-        $('#edit_name').val(course.name);
-        $('#edit_descriptions').val(course.description);
-        $('#edit_teacher').val(course.teacher_id);
-
-        let formAction = "{{ route('admin.courses.update', ':id') }}";
-        formAction = formAction.replace(':id', course.id);
-        $('#editCourseForm').attr('action', formAction);
-
-        $('#editCourseModal').modal('show');
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script> --}}
 
 <script>
     $(document).ready(function () {
-        $('#coursesTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/Indonesian.json"
-            }
+        // $('#coursesTable').DataTable({
+        //     "language": {
+        //         "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/Indonesian.json"
+        //     }
+        // });
+
+        // Tombol Create: Kosongkan Form dan Tampilkan Modal
+        $("#addCourse").click(function () {
+            $("#courseId").val('');
+            $("#courseForm")[0].reset();
+            $("#courseModalLabel").text("Tambah Course");
+            $("#courseModal").modal('show');
         });
 
-        $('#addCourseForm').on('submit', function (e) {
-            e.preventDefault();
-            let form = $(this);
-            let formData = form.serialize();
+        // Simpan atau Update Data
+        $("#saveCourse").click(function () {
+            let id = $("#courseId").val();
+            let data = {
+                name: $("#name").val(),
+                description: $("#descriptions").val(),
+                teacher: $("#teacher").val(),
+                _token: $('meta[name="csrf-token"]').attr('content')
+            };
+            let url = id ? `/admin/courses/${id}` : '/admin/courses';
+            let type = id ? 'PUT' : 'POST';
 
             $.ajax({
-                url: form.attr('action'),
-                method: form.attr('method'),
-                data: formData,
-                success: function (response) {
-                    $('#coursesTable').DataTable().ajax.reload();
-                    $('#addCourseModal').modal('hide');
-                    form[0].reset();
-                    alert('Course berhasil ditambahkan!');
-                },
-                error: function (xhr) {
-                    alert('Gagal menambahkan module: ' + xhr.responseJSON.message);
+                url: url,
+                type: type,
+                data: data,
+                success: function () {
+                    $("#courseModal").modal('hide'); // Sembunyikan modal
+                    location.reload(); // Refresh halaman
                 }
             });
         });
-    });
-</script>
-<script>
-    $(document).ready(function() {
-        $('.btn-edit').on('click', function() {
-            var courseId = $(this).data('id');
-            var url = "{{ route('admin.courses.edit', ':id') }}";
-            url = url.replace(':id', courseId);
 
-            $.get(url, function(data) {
-                $('#courseName').val(data.name);
-                $('#courseDescription').val(data.description);
-                $('#courseTeacher').val(data.teacher_id);
+        // Edit Data
+        $(".editCourse").click(function () {
+            let id = $(this).data("id");
 
-                var formAction = "{{ route('admin.courses.update', ':id') }}";
-                formAction = formAction.replace(':id', courseId);
-                $('#editCourseForm').attr('action', formAction);
+            $.get(`/admin/courses/${id}/edit`, function (data) {
+                $("#courseId").val(data.id);
+                $("#name").val(data.name);
+                $("#descriptions").val(data.description);
 
-                $('#editCourseModal').modal('show');
+                // Cek apakah data guru ada
+                if (data.teacher) {
+                    $("#teacher").val(data.teacher.id);
+                } else {
+                    $("#teacher").val(""); // Reset nilai jika tidak ada guru
+                    $("#teacher").append('<option value="" disabled selected>Tidak tersedia</option>');
+                }
+
+                $("#courseModal").modal('show');
             });
+        });
+
+        // Hapus Data
+        $(".deleteCourse").click(function () {
+            let id = $(this).data("id");
+
+            if (confirm("Are you sure?")) {
+                $.ajax({
+                    url: `/admin/courses/${id}`,
+                    type: 'DELETE',
+                    data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                    success: function () {
+                        location.reload();
+                    }
+                });
+            }
+        });
+
+        // Clear Form
+        $("#addCourse").click(function () {
+            $("#courseId").val('');
+            $("#courseForm")[0].reset();
+            $("#courseModal").modal('show');
         });
     });
 </script>
+
 @endsection
