@@ -18,6 +18,7 @@ class AdminCourseController extends Controller
     {
         $courses = Course::with('teacher')->get();
         $teachers = Teacher::all();
+        // dd($teachers);
 
         return view('admin.courses.allCourse', compact('courses', 'teachers'));
     }
@@ -35,8 +36,19 @@ class AdminCourseController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'teacher_id' => 'required|exists:users,id', // Pastikan teacher_id ada di tabel users
+        ]);
+
         Course::create($request->all());
-        return response()->json(['success' => 'Courses added successfully.']);
+        return response()->json(['success' => 'Course added successfully.']);
+
+
+        // Course::create($request->all());
+        // return response()->json(['success' => 'Courses added successfully.']);
+
 
         // // Validasi data input
         // $request->validate([

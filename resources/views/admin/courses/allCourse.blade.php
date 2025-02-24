@@ -13,7 +13,7 @@
                 <th>No</th>
                 <th>Name</th>
                 <th>Deskripsi</th>
-                <th>Phone</th>
+                <th>Teacher</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -51,7 +51,7 @@
                     </div>
                     <div class="form-group mb-3">
                         <label>Deskripsi</label>
-                        <input type="text" id="descriptions" name="descriptions" class="form-control">
+                        <input type="text" id="description" name="description" class="form-control">
                     </div>
                     <div class="form-group">
                         <label for="teacher">Teacher</label>
@@ -89,19 +89,20 @@
 
         // Tombol Create: Kosongkan Form dan Tampilkan Modal
         $("#addCourse").click(function () {
-            $("#courseId").val('');
-            $("#courseForm")[0].reset();
-            $("#courseModalLabel").text("Tambah Course");
-            $("#courseModal").modal('show');
+            $("#courseId").val(''); // Kosongkan ID
+            $("#courseForm")[0].reset(); // Reset form input
+            $("#courseModalLabel").text("Tambah Course"); // Ubah judul modal
+            $("#courseModal").modal('show'); // Tampilkan modal
         });
 
         // Simpan atau Update Data
-        $("#saveCourse").click(function () {
+        $("#courseForm").submit(function (event) {
+            event.preventDefault(); // Mencegah pengiriman form secara default
             let id = $("#courseId").val();
             let data = {
                 name: $("#name").val(),
-                description: $("#descriptions").val(),
-                teacher: $("#teacher").val(),
+                description: $("#description").val(),
+                teacher_id: $("#teacher").val(),
                 _token: $('meta[name="csrf-token"]').attr('content')
             };
             let url = id ? `/admin/courses/${id}` : '/admin/courses';
@@ -125,7 +126,7 @@
             $.get(`/admin/courses/${id}/edit`, function (data) {
                 $("#courseId").val(data.id);
                 $("#name").val(data.name);
-                $("#descriptions").val(data.description);
+                $("#description").val(data.description);
 
                 // Cek apakah data guru ada
                 if (data.teacher) {
