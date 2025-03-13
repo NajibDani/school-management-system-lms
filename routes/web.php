@@ -49,8 +49,8 @@ Route::middleware(['auth'])->group(function () {
         // CRUD Teacher
         Route::prefix('admin/teachers')->name('admin.teachers.')->group(function () {
             Route::get('/', [AdminTeacherController::class, 'index'])->name('index');
-            Route::get('/create', [AdminTeacherController::class, 'create'])->name('create');
-            Route::post('/store', [AdminTeacherController::class, 'store'])->name('store');
+            // Route::get('/create', [AdminTeacherController::class, 'create'])->name('create');
+            Route::post('/', [AdminTeacherController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [AdminTeacherController::class, 'edit'])->name('edit');
             Route::put('/{id}', [AdminTeacherController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminTeacherController::class, 'destroy'])->name('destroy');
@@ -69,8 +69,8 @@ Route::middleware(['auth'])->group(function () {
         // CRUD Classes
         Route::prefix('admin/classes')->name('admin.classes.')->group(function () {
             Route::get('/', [AdminClassController::class, 'index'])->name('index');
-            Route::get('/create', [AdminClassController::class, 'create'])->name('create');
-            Route::post('/store', [AdminClassController::class, 'store'])->name('store');
+            // Route::get('/create', [AdminClassController::class, 'create'])->name('create');
+            Route::post('/', [AdminClassController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [AdminClassController::class, 'edit'])->name('edit');
             Route::put('/{id}', [AdminClassController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminClassController::class, 'destroy'])->name('destroy');
@@ -88,8 +88,8 @@ Route::middleware(['auth'])->group(function () {
         // CRUD Modul
         Route::prefix('admin/modules')->name('admin.modules.')->group(function () {
             Route::get('/', [AdminModulController::class, 'index'])->name('index');
-            Route::get('/create', [AdminModulController::class, 'create'])->name('create');
-            Route::post('/store', [AdminModulController::class, 'store'])->name('store');
+            // Route::get('/create', [AdminModulController::class, 'create'])->name('create');
+            Route::post('/', [AdminModulController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [AdminModulController::class, 'edit'])->name('edit');
             Route::put('/{id}', [AdminModulController::class, 'update'])->name('update');
             Route::delete('/{id}', [AdminModulController::class, 'destroy'])->name('destroy');

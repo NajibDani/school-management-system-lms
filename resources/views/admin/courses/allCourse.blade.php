@@ -114,6 +114,7 @@
                 data: data,
                 success: function () {
                     $("#courseModal").modal('hide'); // Sembunyikan modal
+                    alert("Data berhasil disimpan!"); // Menampilkan alert
                     location.reload(); // Refresh halaman
                 }
             });
@@ -150,6 +151,7 @@
                     type: 'DELETE',
                     data: { _token: $('meta[name="csrf-token"]').attr('content') },
                     success: function () {
+                        alert("Data berhasil dihapus!"); // Menampilkan alert
                         location.reload();
                     }
                 });

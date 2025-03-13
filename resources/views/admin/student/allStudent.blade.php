@@ -1,10 +1,12 @@
 @extends('admin.dashboard')
 
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <div class="container mt-4">
     <h2>List Student</h2>
     <!-- Button untuk menambah siswa baru -->
-    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addStudentModal">Add New Student</button>
+    <button id="addStudent" class="btn btn-primary mb-3">Tambah Student</button>
 
     <table id="studentsTable" class="table table-bordered">
         <thead>
@@ -24,14 +26,8 @@
                     <td>{{ $student->user->email }}</td> <!-- Email user -->
                     <td>{{ $student->currentClass->name ?? '-' }}</td> <!-- Nama kelas -->
                     <td>
-                        <a href="{{ route('admin.students.edit', $student->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                        <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST"
-                            style="display: inline-block;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm"
-                                onclick="return confirm('Yakin ingin menghapus?')">Delete</button>
-                        </form>
+                        <button class="btn btn-warning btn-sm editStudent" data-id="{{ $student->id }}">Edit</button>
+                        <button class="btn btn-danger btn-sm deleteStudent" data-id="{{ $student->id }}">Delete</button>
                     </td>
                 </tr>
             @endforeach
@@ -40,30 +36,28 @@
 </div>
 
 <!-- Modal Tambah Student -->
-<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+<div class="modal fade" id="studentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="addStudentForm" method="POST" action="{{ route('admin.students.store') }}">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+            <div class="modal-header">
+                <h5 class="modal-title">Students Form</h5>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
+            </div>
+            <form id="studentForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="name">Nama</label>
-                        <input type="text" name="name" id="name" class="form-control" required>
+                    <input type="hidden" id="studentId">
+                    <div class="form-group mb-3">
+                        <label>Name</label>
+                        <input type="text" id="name" name="name" class="form-control">
                     </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
+                    <div class="form-group mb-3">
+                        <label>Email</label>
                         <input type="email" name="email" id="email" class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label for="current_class_id">Assign Class</label>
-                        <select name="current_class_id" id="current_class_id" class="form-control">
-                            <option value="" selected>No Class Assigned</option>
+                        <select name="current_class_id" id="current_class_id" class="form-control" required>
+                            <option value="" selected disabled>No Class Assigned</option>
                             @foreach ($classes as $class)
                                 <option value="{{ $class->id }}">{{ $class->name }}</option>
                             @endforeach
@@ -72,53 +66,121 @@
                     <input type="hidden" name="role_id" value="3"> <!-- Role ID otomatis diset ke 3 -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Add Student</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    {{-- <button type="button" class="btn btn-success" onclick="saveStudent()">Save</button> --}}
                 </div>
             </form>
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Tambahkan DataTables Library -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+{{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script> --}}
 
 <script>
     $(document).ready(function () {
-        // Inisialisasi DataTables
-        $('#studentsTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/Indonesian.json"
-            }
+        // Tombol Create: Kosongkan Form dan Tampilkan Modal
+        $("#addStudent").click(function () {
+            resetForm();
+            $("#studentModal .modal-title").text("Tambah Student");
+            $("#studentModal").modal('show');
         });
 
-        // AJAX Form Submit untuk menambah student
-        $('#addStudentForm').on('submit', function (e) {
-            e.preventDefault(); // Prevent default submit
-            let form = $(this);
-            let formData = form.serialize();
+        // Simpan atau Update Data
+        $("#studentForm").submit(function (event) {
+            event.preventDefault();
+            let id = $("#studentId").val();
+            let url = id ? `/admin/students/${id}` : '/admin/students';
+            let type = id ? 'PUT' : 'POST';
+
+            let data = {
+                name: $("#name").val(),
+                email: $("#email").val(),
+                current_class_id: $("#current_class_id").val(),
+                role_id: 3, // Role ID otomatis diset ke 3
+            };
 
             $.ajax({
-                url: form.attr('action'),
-                method: form.attr('method'),
-                data: formData,
+                url: url,
+                type: type,
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                processData: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 success: function (response) {
-                    // Refresh tabel setelah berhasil
-                    $('#studentsTable').DataTable().ajax.reload();
-                    $('#addStudentModal').modal('hide'); // Tutup modal
-                    form[0].reset(); // Reset form
-                    alert('Student berhasil ditambahkan!');
+                    $("#studentModal").modal('hide');
+                    alert(response.message || "Data berhasil disimpan!");
+                    location.reload();
                 },
                 error: function (xhr) {
-                    // Tampilkan error jika ada
-                    alert('Gagal menambahkan student: ' + xhr.responseJSON.message);
+                    alert("Terjadi kesalahan: " + xhr.responseText);
                 }
             });
         });
+
+        // Edit Data
+        $(".editStudent").click(function () {
+            let id = $(this).data("id");
+
+            $.get(`/admin/students/${id}/edit`, function (data) {
+                $("#studentId").val(data.id);
+
+                if (data.user) {
+                    $("#name").val(data.user.name);
+                    $("#email").val(data.user.email);
+                } else {
+                    $("#name").val("");
+                    $("#email").val("");
+                }
+
+                if (data.current_class) {
+                    $("#current_class_id").val(data.current_class.id);
+                } else {
+                    $("#current_class_id").val("");
+                }
+
+                $("#studentModal .modal-title").text("Edit Student");
+                $("#studentModal").modal('show');
+            });
+        });
+
+        // Hapus Data
+        $(".deleteStudent").click(function () {
+            let id = $(this).data("id");
+
+            if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+                $.ajax({
+                    url: `/admin/students/${id}`,
+                    type: 'DELETE',
+                    data: JSON.stringify({ _token: $('meta[name="csrf-token"]').attr('content') }),
+                    contentType: 'application/json',
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        alert(response.message || "Data berhasil dihapus!");
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        alert("Terjadi kesalahan: " + xhr.responseText);
+                    }
+                });
+            }
+        });
+
+        // Fungsi Reset Form
+        function resetForm() {
+            $("#studentId").val('');
+            $("#studentForm")[0].reset();
+            $("#current_class_id").val("");
+        }
     });
 </script>
 @endsection

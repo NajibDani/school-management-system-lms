@@ -25,8 +25,7 @@ class AdminClassController extends Controller
      */
     public function create()
     {
-        $teachers = User::where('role_id', 2)->get(); // Mengambil semua guru
-        return view('admin.classes.create', compact('teachers'));
+        //
     }
 
     /**
@@ -36,22 +35,23 @@ class AdminClassController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'teacher_id' => 'nullable|exists:users,id',
+            'teacher_id' => 'required|exists:users,id', // Pastikan teacher_id ada di tabel users
         ]);
 
-        Classes::create($request->only('name', 'teacher_id'));
-
-        return redirect()->route('admin.classes.index')->with('success', 'Kelas berhasil ditambahkan.');
+        Classes::create($request->all());
+        return response()->json(['success' => 'Course added successfully.']);
     }
 
     /**
      * Menampilkan form untuk mengedit data kelas.
      */
-    public function edit($id)
+    public function edit(Request $request, Classes $classes, $id)
     {
-        $class = Classes::findOrFail($id); // Mengambil data kelas berdasarkan ID
-        $teachers = User::where('role_id', 2)->get(); // Mengambil semua guru
-        return view('admin.classes.edit', compact('class', 'teachers'));
+        $class = Classes::with('teacher')->find($id); // Mengambil data kelas beserta guru
+        if (!$class) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
+        return response()->json($class);
     }
 
     /**
@@ -75,9 +75,7 @@ class AdminClassController extends Controller
      */
     public function destroy($id)
     {
-        $class = Classes::findOrFail($id);
-        $class->delete();
-
-        return redirect()->route('admin.classes.index')->with('success', 'Kelas berhasil dihapus.');
+        Classes::find($id)->delete();
+        return response()->json(['success' => 'Courses deleted successfully.']);
     }
 }

@@ -33,7 +33,7 @@ class AdminStudentController extends Controller
             'email' => 'required|email|unique:users,email',
             'current_class_id' => 'nullable|exists:tbl_classes,id', // Validasi kelas
         ]);
-    
+
         // Buat User
         $user = User::create([
             'name' => $request->name,
@@ -41,13 +41,13 @@ class AdminStudentController extends Controller
             'password' => bcrypt('password123'),
             'role_id' => 3,
         ]);
-    
+
         // Buat Student
         $student = Student::create([
             'user_id' => $user->id,
             'enrollment_number' => 'STU' . time(),
         ]);
-    
+
         // Jika kelas dipilih, tambahkan ke ClassHistory
         if ($request->current_class_id) {
             ClassHistory::create([
@@ -55,52 +55,66 @@ class AdminStudentController extends Controller
                 'class_id' => $request->current_class_id,
                 'start_date' => now(),
             ]);
-    
+
             // Update current_class_id di tabel Student
             $student->update(['current_class_id' => $request->current_class_id]);
         }
-    
+
         return response()->json(['success' => true, 'message' => 'Student berhasil ditambahkan.']);
     }
 
     // Update: Menampilkan form untuk memperbarui data siswa
-    public function edit($id)
+    public function edit(Request $request, Student $student, string $id)
     {
-        $student = Student::with(['user', 'currentClass'])->findOrFail($id); // Ambil data siswa
-        $classes = Classes::all(); // Ambil semua kelas untuk dropdown
-        return view('admin.students.edit', compact('student', 'classes'));
+        $student = Student::with(['user', 'currentClass'])->find($id);
+        return response()->json($student);
     }
-
 
     // Update: Memperbarui data siswa
     public function update(Request $request, $id)
     {
+        // Validasi data yang diterima
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'current_class_id' => 'nullable|exists:classes,id', // Validasi kelas
+            'email' => 'required|email|max:255',
+            'current_class_id' => 'required|integer',
         ]);
 
+        // Temukan siswa berdasarkan ID
         $student = Student::findOrFail($id);
-        $student->update([
-            'current_class_id' => $request->current_class_id, // Update kelas
-        ]);
 
-        $student->user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
+        // Update data pengguna
+        $user = $student->user; // Asumsi relasi sudah didefinisikan
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
 
-        return redirect()->route('admin.students.index')->with('success', 'Data siswa berhasil diperbarui.');
+        // Update data siswa
+        $student->current_class_id = $request->current_class_id;
+        $student->save();
+
+        return response()->json(['message' => 'Data berhasil diperbarui!']);
     }
-
 
     // Delete: Menghapus data siswa
     public function destroy($id)
     {
-        $student = Student::findOrFail($id);
-        $student->delete();
+        // Mencari student berdasarkan ID
+        $student = Student::find($id);
 
-        return redirect()->route('admin.students.index')->with('success', 'Data siswa berhasil dihapus.');
+        // Memeriksa apakah student ditemukan
+        if ($student) {
+            // Menghapus user jika user_id ada
+            if ($student->user_id) {
+                User::find($student->user_id)->delete();
+            }
+
+            // Menghapus student
+            $student->delete();
+
+            return response()->json(['success' => 'Data siswa dan pengguna dihapus dengan sukses.']);
+        }
+
+        return response()->json(['error' => 'Data siswa tidak ditemukan.'], 404);
     }
 }
