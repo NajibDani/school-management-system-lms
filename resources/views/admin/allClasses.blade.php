@@ -26,12 +26,6 @@
                 <td>
                     <button class="btn btn-warning btn-sm editClass" data-id="{{ $class->id }}">Edit</button>
                     <button class="btn btn-danger btn-sm deleteClass" data-id="{{ $class->id }}">Delete</button>
-                    {{-- <a href="{{ route('admin.classes.edit', $class->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                    <form action="{{ route('admin.classes.destroy', $class->id) }}" method="POST" style="display: inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?')">Delete</button>
-                    </form> --}}
                 </td>
             </tr>
             @endforeach
@@ -51,7 +45,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="classId">
                     <div class="form-group mb-3">
-                        <label>Name</label>
+                        <label for="name">Name</label>
                         <input type="text" id="name" name="name" class="form-control">
                     </div>
                     {{-- <div class="form-group mb-3">

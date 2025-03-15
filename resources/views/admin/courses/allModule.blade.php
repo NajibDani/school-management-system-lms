@@ -53,11 +53,11 @@
                 <div class="modal-body">
                     <input type="hidden" id="moduleId">
                     <div class="form-group mb-3">
-                        <label>Title</label>
+                        <label for="title">Title</label>
                         <input type="text" id="title" name="title" class="form-control">
                     </div>
                     <div class="form-group mb-3">
-                        <label>Content</label>
+                        <label for="content">Content</label>
                         <input type="text" id="content" name="content" class="form-control">
                     </div>
                     <div class="form-group">
@@ -70,7 +70,7 @@
                         </select>
                     </div>
                     <div class="form-group mb-3">
-                        <label>Video URL</label>
+                        <label for="video_url">Video URL</label>
                         <input type="url" name="video_url" id="video_url" class="form-control" required>
                     </div>
                 </div>

@@ -18,7 +18,6 @@ class AdminCourseController extends Controller
     {
         $courses = Course::with('teacher')->get();
         $teachers = Teacher::all();
-        // dd($teachers);
 
         return view('admin.courses.allCourse', compact('courses', 'teachers'));
     }
@@ -44,31 +43,6 @@ class AdminCourseController extends Controller
 
         Course::create($request->all());
         return response()->json(['success' => 'Course added successfully.']);
-
-
-        // Course::create($request->all());
-        // return response()->json(['success' => 'Courses added successfully.']);
-
-
-        // // Validasi data input
-        // $request->validate([
-        //     'name' => 'required|string|max:255',
-        //     'descriptions' => 'nullable|string',
-        //     'teacher' => 'required|exists:users,id',
-        // ]);
-
-        // try {
-        //     // Simpan data ke database
-        //     Course::create([
-        //         'name' => $request->name,
-        //         'description' => $request->descriptions,
-        //         'teacher_id' => $request->teacher,
-        //     ]);
-
-        //     return redirect()->route('admin.courses.index')->with('success', 'Course berhasil ditambahkan.');
-        // } catch (\Exception $e) {
-        //     return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        // }
     }
 
     /**
@@ -83,11 +57,13 @@ class AdminCourseController extends Controller
      * Show the form for editing the specified resource.
      */
     // public function edit(string $id)
-    public function edit(Request $request, Course $course, string $id)
+    public function edit(Request $request, string $id)
     {
-        $course = Course::find($id);
+        $course = Course::with('teacher')->find($id); // Mengambil data kelas beserta guru
+        if (!$course) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
         return response()->json($course);
-
     }
 
     /**
@@ -107,13 +83,5 @@ class AdminCourseController extends Controller
     {
         Course::find($id)->delete();
         return response()->json(['success' => 'Courses deleted successfully.']);
-        // try {
-        //     $course = Course::findOrFail($id);
-        //     $course->delete();
-
-        //     return redirect()->route('admin.courses.allCourse')->with('success', 'Modul berhasil dihapus.');
-        // } catch (\Exception $e) {
-        //     return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        // }
     }
 }

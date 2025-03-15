@@ -40,17 +40,17 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Courses Form</h5>
-                <button type="button" class="btn-close" data-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-dismiss="modal">&times;</button>
             </div>
             <form id="courseForm">
                 <div class="modal-body">
                     <input type="hidden" id="courseId">
-                    <div class="form-group mb-3">
-                        <label>Name</label>
+                    <div class="form-name mb-3">
+                        <label for="subject">Name</label>
                         <input type="text" id="name" name="name" class="form-control">
                     </div>
                     <div class="form-group mb-3">
-                        <label>Deskripsi</label>
+                        <label for="description">Deskripsi</label>
                         <input type="text" id="description" name="description" class="form-control">
                     </div>
                     <div class="form-group">

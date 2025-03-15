@@ -19,7 +19,7 @@ class AdminTeacherController extends Controller
     // Create: Menampilkan form untuk menambah guru baru
     public function create()
     {
-        return view('admin.teacher.create');
+        //
     }
 
     // Create: Menyimpan data guru baru
@@ -52,31 +52,55 @@ class AdminTeacherController extends Controller
     // Update: Menampilkan form untuk memperbarui data guru
     public function edit($id)
     {
-        $teacher = Teacher::findOrFail($id); // Mengambil data guru berdasarkan ID
-        return view('admin.teacher.edit', compact('teacher'));
+        $teacher = Teacher::with(['user'])->find($id);
+        return response()->json($teacher);
     }
 
     // Update: Memperbarui data guru
     public function update(Request $request, $id)
     {
+        // Validasi data yang diterima
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
         ]);
 
+        // Temukan siswa berdasarkan ID
         $teacher = Teacher::findOrFail($id);
-        $teacher->update($request->all());
 
-        return redirect()->route('admin.teacher.index')->with('success', 'Data guru berhasil diperbarui.');
+        // Update data pengguna
+        $user = $teacher->user; // Asumsi relasi sudah didefinisikan
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+
+        // Update data siswa
+        $teacher->subject = $request->subject;
+        $teacher->save();
+
+        return response()->json(['message' => 'Data berhasil diperbarui!']);
     }
 
     // Delete: Menghapus data guru
     public function destroy($id)
     {
-        $teacher = Teacher::findOrFail($id);
-        $teacher->delete();
+        // Mencari teacher berdasarkan ID
+        $teacher = Teacher::find($id);
 
-        return redirect()->route('admin.teacher.index')->with('success', 'Data guru berhasil dihapus.');
+        // Memeriksa apakah teacher ditemukan
+        if ($teacher) {
+            // Menghapus user jika user_id ada
+            if ($teacher->user_id) {
+                User::find($teacher->user_id)->delete();
+            }
+
+            // Menghapus teacher
+            $teacher->delete();
+
+            return response()->json(['success' => 'Data siswa dan pengguna dihapus dengan sukses.']);
+        }
+
+        return response()->json(['error' => 'Data siswa tidak ditemukan.'], 404);
     }
 }
